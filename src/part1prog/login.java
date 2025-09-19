@@ -28,13 +28,14 @@ class login {
         loginUsername = scan.nextLine();
 
         System.out.println("Enter password");
-        loginPassword = scan.nextLine();}while(!checkUserDetails(loginUsername,loginPassword));
+        loginPassword = scan.nextLine();
+        }while(!checkUserDetails(loginUsername,loginPassword));
     } // end of log method
 
     public boolean checkUserDetails(String username, String password) {
         if (username.equals(register.username) && password.equals(register.password)) {
             System.out.println("Welcome" + register.name);
-            return false;
+            return true;
 
         } else {
             System.out.println("incorrect details");
