@@ -23,11 +23,12 @@ class login {
         String loginUsername;
         String loginPassword;
 
+        do{
         System.out.println("Enter Username");
         loginUsername = scan.nextLine();
 
         System.out.println("Enter password");
-        loginPassword = scan.nextLine();
+        loginPassword = scan.nextLine();}while(!checkUserDetails(loginUsername,loginPassword));
     } // end of log method
 
     public boolean checkUserDetails(String username, String password) {
