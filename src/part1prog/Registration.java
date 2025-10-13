@@ -4,14 +4,14 @@
  */
 package part1prog;
 
-import java.util.Scanner;
+import javax.swing.JOptionPane;
 
 /**
  *
  * @author RC_Student_lab
  */
 public class Registration {
-    Scanner scan = new Scanner(System.in);
+
     String name;
     String surname;
     String username;
@@ -20,86 +20,66 @@ public class Registration {
 
     public void userInput() {
 
-        System.out.println("Please enter your name: ");
-        name = scan.nextLine();
-
-        System.out.println("Please enter your surname: ");
-        surname = scan.nextLine();
+        name = JOptionPane.showInputDialog("Please enter your name: ");
+        surname = JOptionPane.showInputDialog("Please enter your surname: ");
 
         do {
-            System.out.println("Please enter your username: ");
-            username = scan.nextLine();
+            username = JOptionPane.showInputDialog("Please enter your username: ");
         } while (!checkUsername(username));
 
         do {
-            System.out.println("Please enter your password: ");
-            password = scan.nextLine();
+            password = JOptionPane.showInputDialog("Please enter your password: ");
         } while (!checkPassword(password));
 
         // ask once for cellphone number until valid:
         do {
-            System.out.println("Please enter your cellphone number: ");
-            cellphoneNumber = scan.nextLine();
+            cellphoneNumber = JOptionPane.showInputDialog("Please enter your cellphone number: ");
 
             if (checkCellphoneNumber(cellphoneNumber)) {
-                // valid cellphone: login successful
-                System.out.println("Login successful!");
+                JOptionPane.showMessageDialog(null, "Login successful!");
             } else {
                 // invalid cellphone: login failed
-                System.out.println("Login failed. Cellphone number incorrect.");
+                JOptionPane.showMessageDialog(null, "Login failed. Cellphone number incorrect.");
             }
-
         } while (!checkCellphoneNumber(cellphoneNumber)); // repeat until valid
-
-    } //end of userInput()
+    }
 
     public boolean checkUsername(String username) {
         if (username.contains("_") && username.length() <= 5) {
-            System.out.println("Welcome " + name + " " + surname + " it is great to see you.");
+            JOptionPane.showMessageDialog(null, "Welcome " + name + " " + surname + " it is great to see you.");
             return true;
         } else {
-            System.out.println("Your username did not meet the following conditions");
+            JOptionPane.showMessageDialog(null, "Your username did not meet the required conditions.");
             return false;
         }
-    } //end of checkUsername method 
+    }//end of checkUsername method 
 
     public boolean checkPassword(String password) {
-        //check password length
         boolean hasMinLength = password.length() >= 8;
-
         boolean hasDigit = password.matches(".*\\d.*");
-
-        //check password has uppercase
         boolean hasUppercase = password.matches(".*[A-Z].*");
-
-        //check if password has special chacater
         boolean hasSpecialCharacters = password.matches(".*[!@#$%&^*()_-].*");
 
         if (hasMinLength && hasDigit && hasUppercase && hasSpecialCharacters) {
-            System.out.println("Password is successfully captured");
+            JOptionPane.showMessageDialog(null, "Password is successfully captured");
             return true;
         } else {
-            System.out.println("Your password is not correctly formatted, please ensure that the "
-                    + "password contains at least eight characters, a capital letter, a number, and a special character.");
+            JOptionPane.showMessageDialog(null, "Password does not meet the complexity requirements.");
             return false;
         }
     }
     //end of check of password
 
     public boolean checkCellphoneNumber(String phoneNumber) {
-        //contains country code
         boolean countryCode = phoneNumber.contains("+27");
-
-        //contains 9 digits
         boolean hasDigit = phoneNumber.matches(".*\\d{9}.*");
-
         boolean hasMinLength = phoneNumber.length() == 12;
 
         if (countryCode && hasDigit && hasMinLength) {
-            System.out.println("Phone number has been successfully captured");
+            JOptionPane.showMessageDialog(null, "Phone number has been successfully captured");
             return true;
         } else {
-            System.out.println("Phone number did not meet conditions, try again");
+            JOptionPane.showMessageDialog(null, "Phone number did not meet conditions, try again");
             return false;
         }
     }
@@ -118,27 +98,15 @@ public class Registration {
     }
 
     public boolean loginUser() {
-        System.out.println("Please enter your username to login: ");
-        String loginUsername = scan.nextLine();
-
-        System.out.println("Please enter your password to login: ");
-        String loginPassword = scan.nextLine();
+        String loginUsername = JOptionPane.showInputDialog("Please enter your username to login: ");
+        String loginPassword = JOptionPane.showInputDialog("Please enter your password to login: ");
 
         if (loginUsername.equals(this.username) && loginPassword.equals(this.password)) {
-            System.out.println("Login successful!");
+            JOptionPane.showMessageDialog(null, "Login successful!");
             return true;
         } else {
-            System.out.println("Login failed. Username or password incorrect.");
+            JOptionPane.showMessageDialog(null, "Login failed. Username or password incorrect.");
             return false;
-        }
-    }
-
-    public String returnLoginStatus() {
-        boolean loginSuccessful = loginUser();
-        if (loginSuccessful) {
-            return "Login was successful.";
-        } else {
-            return "Login failed. Username or password incorrect.";
         }
     }
 }
