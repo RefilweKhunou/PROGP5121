@@ -24,7 +24,7 @@ public class SendingMessages {
     public void showMenu() {
         boolean running = true;
         while (running) {
-            String[] options = {"Send Messages", "Show Recently Sent Messages", "Send Pending Messages", "Quit"};
+            String[] options = {"Send Messages", "Show Recently Sent Messages", "Send Pending Messages", "Show Message Arrays", "Quit"};
             int choice = JOptionPane.showOptionDialog(null, "Select an option", "QuickChat Menu",
                     JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
 
@@ -38,9 +38,12 @@ public class SendingMessages {
                 case 2: // Send Pending Messages
                     sendPendingMessages(); // Send the stored messages
                     break;
-                case 3: // Quit
+                case 3: // Show Message Arrays
+                    JOptionPane.showMessageDialog(null, ArrayMessageStorage.displayAllArrays());
+                    break;
+                case 4:
                     JOptionPane.showMessageDialog(null, "Goodbye!");
-                    running = false; // Exit the loop and end the application
+                    running = false;
                     break;
             }
         }
@@ -62,63 +65,70 @@ public class SendingMessages {
         boolean continueSending = true;
 
         while (continueSending) {
-            String recipient = JOptionPane.showInputDialog("Enter recipient's cellphone number (with international code, e.g., +27123456789):\nOr click Cancel to return to menu.");
-            if (recipient == null) {
-                break; // If the user cancels, return to menu
-            }
+        // This is the correct place to get the sender
+        String sender = register.getUsername();  
 
-            if (!checkRecipient(recipient)) {
-                JOptionPane.showMessageDialog(null, "Invalid recipient number format.\nPlease use format: +27123456789 (country code + 10 digits)");
-                continue;
-            }
+        String recipient = JOptionPane.showInputDialog(
+            "Enter recipient's cellphone number (with international code, e.g., +27123456789):\nOr click Cancel to return to menu."
+        );
+        if (recipient == null) break;
 
-            String messageContent = JOptionPane.showInputDialog("Enter message " + messageNumber + " (Max 250 characters):");
-            if (messageContent == null) {
-                break; // If the user cancels, return to menu
-            }
-
-            // Check if the message exceeds 250 characters
-            if (messageContent.length() > 250) {
-                int excessLength = messageContent.length() - 250;
-                JOptionPane.showMessageDialog(null, "Message exceeds 250 characters by " + excessLength + ", please reduce size.");
-                continue; // Skip this message and allow the user to enter again
-            }
-
-            // Generate a unique 10-digit message ID
-            String messageId = generateMessageId();
-
-            // Create the Message object
-            Message newMessage = new Message(messageId, messageNumber, recipient, messageContent);
-
-            // Ask the user what they want to do with the message
-            String[] options = {"Send Message", "Disregard Message", "Store Message to Send Later"};
-            int optionChoice = JOptionPane.showOptionDialog(null, "What do you want to do with this message?\n\n" + newMessage.toString(),
-                    "Message Options", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
-
-            switch (optionChoice) {
-                case 0: // Send Message
-                    messages.add(newMessage); // Store the message as sent
-                    JOptionPane.showMessageDialog(null, "Message successfully sent!\n" + newMessage.toString());
-                    messageNumber++;
-                    break;
-                case 1: // Disregard Message
-                    JOptionPane.showMessageDialog(null, "Message disregarded.\n" + newMessage.toString());
-                    break;
-                case 2: // Store Message to Send Later
-                    pendingMessages.add(newMessage); // Store the message for later
-                    JOptionPane.showMessageDialog(null, "Message successfully stored for later!\n" + newMessage.toString());
-                    messageNumber++;
-                    break;
-            }
-
-            // Ask if user wants to send another message
-            int continueChoice = JOptionPane.showConfirmDialog(null,
-                    "Do you want to send another message?", "Continue Sending",
-                    JOptionPane.YES_NO_OPTION);
-
-            continueSending = (continueChoice == JOptionPane.YES_OPTION);
+        if (!checkRecipient(recipient)) {
+            JOptionPane.showMessageDialog(null, "Invalid recipient number format.\nPlease use format: +27123456789 (country code + 10 digits)");
+            continue;
         }
+
+        String messageContent = JOptionPane.showInputDialog("Enter message " + messageNumber + " (Max 250 characters):");
+        if (messageContent == null) break;
+
+        if (messageContent.length() > 250) {
+            int excessLength = messageContent.length() - 250;
+            JOptionPane.showMessageDialog(null, "Message exceeds 250 characters by " + excessLength + ", please reduce size.");
+            continue;
+        }
+
+        // Generate unique ID
+        String messageId = generateMessageId();
+        Message newMessage = new Message(messageId, messageNumber, recipient, messageContent);
+
+        String[] options = {"Send Message", "Disregard Message", "Store Message to Send Later"};
+        int optionChoice = JOptionPane.showOptionDialog(null, 
+            "What do you want to do with this message?\n\n" + newMessage.toString(),
+            "Message Options", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]
+        );
+
+        switch (optionChoice) {
+            case 0: // Send
+                messages.add(newMessage);
+                ArrayMessageStorage.addSentMessage(messageContent, sender, recipient);
+                ArrayMessageStorage.addMessageHash(newMessage.messageHash);
+                ArrayMessageStorage.addMessageID(newMessage.messageId);
+                JOptionPane.showMessageDialog(null, "Message successfully sent!\n" + newMessage.toString());
+                messageNumber++;
+                break;
+
+            case 1: // Disregard
+                ArrayMessageStorage.addDisregardedMessage(messageContent);
+                JOptionPane.showMessageDialog(null, "Message disregarded.\n" + newMessage.toString());
+                break;
+
+            case 2: // Store for later
+                pendingMessages.add(newMessage);
+                ArrayMessageStorage.addStoredMessage(messageContent);
+                ArrayMessageStorage.addMessageHash(newMessage.messageHash);
+                ArrayMessageStorage.addMessageID(newMessage.messageId);
+                JOptionPane.showMessageDialog(null, "Message stored for later!\n" + newMessage.toString());
+                messageNumber++;
+                break;
+        }
+
+        int continueChoice = JOptionPane.showConfirmDialog(null,
+            "Do you want to send another message?", "Continue Sending",
+            JOptionPane.YES_NO_OPTION
+        );
+        continueSending = (continueChoice == JOptionPane.YES_OPTION);
     }
+}
 
     public void showRecentMessages() {
         // Show the recently sent messages

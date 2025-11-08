@@ -17,6 +17,7 @@ public class Registration {
     String username;
     String password;
     String cellphoneNumber;
+    
 
     public void userInput() {
 
@@ -109,4 +110,8 @@ public class Registration {
             return false;
         }
     }
+    public String getUsername() {
+        return username;
+    }
+
 }
