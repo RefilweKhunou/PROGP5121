@@ -4,9 +4,16 @@
  */
 package part1prog;
 
+import java.lang.reflect.Field;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import java.io.FileReader;
+import java.io.IOException;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+import java.util.ArrayList;
 
 /**
  *
@@ -16,11 +23,10 @@ public class ArrayMessageStorageNGTest {
     
     @BeforeMethod
     public void setUp() {
-        // Reset storage before each test
         ArrayMessageStorage instance = getInstance();
         resetStorage(instance);
 
-        // Add test messages
+        // Add initial test messages
         ArrayMessageStorage.addSentMessage("Did you get the cake?", "Dev", "+27830000001");
         ArrayMessageStorage.addMessageID("001");
         ArrayMessageStorage.addMessageHash("00:1:DIDCAKE");
@@ -38,9 +44,10 @@ public class ArrayMessageStorageNGTest {
         ArrayMessageStorage.addMessageHash("00:4:OKYOU");
     }
 
+    // Helper method to get instance of ArrayMessageStorage
     private ArrayMessageStorage getInstance() {
         try {
-            java.lang.reflect.Field instanceField = ArrayMessageStorage.class.getDeclaredField("instance");
+            Field instanceField = ArrayMessageStorage.class.getDeclaredField("instance");
             instanceField.setAccessible(true);
             return (ArrayMessageStorage) instanceField.get(null);
         } catch (Exception e) {
@@ -48,31 +55,64 @@ public class ArrayMessageStorageNGTest {
         }
     }
 
+    // Helper method to reset storage
     private void resetStorage(ArrayMessageStorage instance) {
         try {
-            java.lang.reflect.Field sentCountField = ArrayMessageStorage.class.getDeclaredField("sentCount");
-            java.lang.reflect.Field disregardedCountField = ArrayMessageStorage.class.getDeclaredField("disregardedCount");
-            java.lang.reflect.Field storedCountField = ArrayMessageStorage.class.getDeclaredField("storedCount");
-            java.lang.reflect.Field messageCountField = ArrayMessageStorage.class.getDeclaredField("messageCount");
-            sentCountField.setAccessible(true);
-            disregardedCountField.setAccessible(true);
-            storedCountField.setAccessible(true);
-            messageCountField.setAccessible(true);
-
-            sentCountField.setInt(instance, 0);
-            disregardedCountField.setInt(instance, 0);
-            storedCountField.setInt(instance, 0);
-            messageCountField.setInt(instance, 0);
+            String[] fields = {"sentCount", "disregardedCount", "storedCount", "messageCount"};
+            for (String fName : fields) {
+                Field field = ArrayMessageStorage.class.getDeclaredField(fName);
+                field.setAccessible(true);
+                field.setInt(instance, 0);
+            }
+            // Clear message arrays
+            String[][] arrays = {
+                instance.sentMessages,
+                instance.messageSenders,
+                instance.messageRecipients,
+                instance.messagesHash,
+                instance.messagesID,
+                instance.storedMessages,
+                instance.disregardedMessages
+            };
+            for (String[] arr : arrays) {
+                for (int i = 0; i < arr.length; i++) arr[i] = null;
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     @Test
+    public void testAddSentMessage() {
+        ArrayMessageStorage.addSentMessage("Hello", "Alice", "Bob");
+        Assert.assertEquals("Hello", ArrayMessageStorage.get().sentMessages[ArrayMessageStorage.get().sentCount - 1]);
+    }
+
+    @Test
+    public void testDeleteMessageByHash() {
+        // Add a message
+    ArrayMessageStorage.addSentMessage("Hello", "Alice", "Bob");
+    ArrayMessageStorage.addMessageHash("00:5:HELLO");
+
+    // Ensure message is added
+    Assert.assertEquals("Hello", ArrayMessageStorage.get().sentMessages[0]);
+    Assert.assertEquals("00:5:HELLO", ArrayMessageStorage.get().messagesHash[0]);
+
+    // Delete the message using existing method
+    ArrayMessageStorage.deleteByMessageHash("00:5:HELLO");
+
+    // Assert that the message is removed
+    Assert.assertNull(ArrayMessageStorage.get().sentMessages[0]);
+    Assert.assertNull(ArrayMessageStorage.get().messagesHash[0]);
+    Assert.assertNull(ArrayMessageStorage.get().messageSenders[0]);
+    Assert.assertNull(ArrayMessageStorage.get().messageRecipients[0]);
+}
+
+    @Test
     public void testSentMessagesArrayPopulated() {
         ArrayMessageStorage instance = getInstance();
-        Assert.assertEquals(instance.sentMessages[0], "Did you get the cake?");
-        Assert.assertEquals(instance.sentMessages[1], "It is dinner time!");
+        Assert.assertEquals("Did you get the cake?", instance.sentMessages[0]);
+        Assert.assertEquals("It is dinner time!", instance.sentMessages[1]);
     }
 
     @Test
@@ -86,14 +126,13 @@ public class ArrayMessageStorageNGTest {
                 longestIndex = i;
             }
         }
-        Assert.assertEquals(instance.sentMessages[longestIndex], 
-                            "Where are you? You are late!, I have asked you to be on time.");
+        Assert.assertEquals("Where are you? You are late!, I have asked you to be on time.", instance.sentMessages[longestIndex]);
     }
 
     @Test
     public void testSearchByMessageID() {
         ArrayMessageStorage instance = getInstance();
-        String searchID = "002"; // Message 4
+        String searchID = "002";
         int foundIndex = -1;
         for (int i = 0; i < instance.messageCount; i++) {
             if (searchID.equals(instance.messagesID[i])) {
@@ -101,79 +140,65 @@ public class ArrayMessageStorageNGTest {
                 break;
             }
         }
-        Assert.assertEquals(instance.sentMessages[foundIndex], "It is dinner time!");
+        Assert.assertEquals("It is dinner time!", instance.sentMessages[foundIndex]);
     }
 
     @Test
     public void testSearchMessagesByRecipient() {
         ArrayMessageStorage instance = getInstance();
         String recipient = "+27838884567";
-        StringBuilder messagesForRecipient = new StringBuilder();
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < instance.sentCount; i++) {
-            if (recipient.equals(instance.messageRecipients[i])) {
-                messagesForRecipient.append(instance.sentMessages[i]).append("|");
-            }
+            if (recipient.equals(instance.messageRecipients[i])) sb.append(instance.sentMessages[i]).append("|");
         }
-        String[] results = messagesForRecipient.toString().split("\\|");
-        Assert.assertEquals(results[0], "It is dinner time!");
-        Assert.assertEquals(results[1], "Where are you? You are late!, I have asked you to be on time.");
-        Assert.assertEquals(results[2], "Ok, I am leaving without you.");
+        String[] results = sb.toString().split("\\|");
+        Assert.assertEquals("It is dinner time!", results[0]);
+        Assert.assertEquals("Where are you? You are late!, I have asked you to be on time.", results[1]);
+        Assert.assertEquals("Ok, I am leaving without you.", results[2]);
     }
 
     @Test
-    public void testDeleteMessageByHash() {
-        ArrayMessageStorage instance = getInstance();
-        String hashToDelete = "00:3:WHEREON"; // Test Message 2
-        int foundIndex = -1;
-        for (int i = 0; i < instance.messageCount; i++) {
-            if (hashToDelete.equals(instance.messagesHash[i])) {
-                foundIndex = i;
-                break;
-            }
-        }
+    public void testDeleteByHashMethod() {
+        ArrayMessageStorage.deleteByMessageHash("00:3:WHEREON");
 
-        // Simulate deletion
-        for (int j = foundIndex; j < instance.messageCount - 1; j++) {
-            instance.messagesID[j] = instance.messagesID[j + 1];
-            instance.messagesHash[j] = instance.messagesHash[j + 1];
-            instance.sentMessages[j] = instance.sentMessages[j + 1];
-            instance.messageSenders[j] = instance.messageSenders[j + 1];
-            instance.messageRecipients[j] = instance.messageRecipients[j + 1];
-        }
-        int lastIndex = instance.messageCount - 1;
-        instance.messagesID[lastIndex] = null;
-        instance.messagesHash[lastIndex] = null;
-        instance.sentMessages[lastIndex] = null;
-        instance.messageSenders[lastIndex] = null;
-        instance.messageRecipients[lastIndex] = null;
-        instance.messageCount--;
-        instance.sentCount--;
+    // Get instance to check arrays
+    ArrayMessageStorage instance = getInstance();
 
-        // Verify deletion
-        for (int i = 0; i < instance.messageCount; i++) {
-            Assert.assertNotEquals(instance.messagesHash[i], hashToDelete);
-        }
+    // Verify that the message hash no longer exists
+    for (int i = 0; i < instance.messageCount; i++) {
+        Assert.assertNotEquals(instance.messagesHash[i], "00:3:WHEREON");
+    }
+
+    // Optionally, also check that sentMessages and related arrays shifted properly
+    for (int i = 0; i < instance.sentCount; i++) {
+        Assert.assertNotEquals(instance.sentMessages[i], "Where are you? You are late!, I have asked you to be on time.");
+    }
     }
 
     @Test
     public void testDisplayFullReport() {
         ArrayMessageStorage instance = getInstance();
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < instance.sentCount; i++) {
-            sb.append("ID: ").append(instance.messagesID[i])
-              .append("\nHash: ").append(instance.messagesHash[i])
-              .append("\nFrom: ").append(instance.messageSenders[i])
-              .append("\nTo: ").append(instance.messageRecipients[i])
-              .append("\nMessage: ").append(instance.sentMessages[i])
-              .append("\n\n");
-        }
-
-        String report = sb.toString();
+        String report = ArrayMessageStorage.displayAllArrays();
         Assert.assertTrue(report.contains("Did you get the cake?"));
         Assert.assertTrue(report.contains("It is dinner time!"));
         Assert.assertTrue(report.contains("Where are you? You are late!, I have asked you to be on time."));
         Assert.assertTrue(report.contains("Ok, I am leaving without you."));
         Assert.assertTrue(report.contains("00:1:DIDCAKE"));
         Assert.assertTrue(report.contains("+27838884567"));
+    }
+
+    @Test
+    public void testLoadStoredMessagesFromJSON() throws IOException {
+        // Prepare JSON file path
+    String filepath = "test_messages.json";
+
+    // Use the existing method to load stored messages
+    JsonMessageLoader.loadStoredMessagesFromJson(filepath);
+
+    // Verify that messages were loaded correctly
+    ArrayMessageStorage instance = getInstance();
+    Assert.assertEquals("JSON message 1", instance.storedMessages[0]);
+    Assert.assertEquals("JSON message 2", instance.storedMessages[1]);
+    Assert.assertEquals(2, instance.storedCount);
     }
 }

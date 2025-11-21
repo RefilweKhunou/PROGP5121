@@ -6,6 +6,11 @@ package part1prog;
 
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+import java.io.FileReader;
+import java.io.IOException;
 
 /**
  *
@@ -13,14 +18,27 @@ import javax.swing.JOptionPane;
  */
 public class ArrayMessageStorage {
 
+    static int getLongestMessageIndex() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    static Object report() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    static void addStored(String string) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
     int max_array_size = 50;
     String[] sentMessages = new String[max_array_size];
-    String[] disregardedMessages = new String[max_array_size];
-    String[] storedMessages = new String[max_array_size]; // read from JSON
     String[] messagesHash = new String[max_array_size];
     String[] messagesID = new String[max_array_size];
     String[] messageSenders = new String[max_array_size];
 String[] messageRecipients = new String[max_array_size];
+
+String[] disregardedMessages = new String[max_array_size];
+    String[] storedMessages = new String[max_array_size]; // read from JSON
 
     int sentCount = 0;
     int disregardedCount = 0;
@@ -29,34 +47,51 @@ String[] messageRecipients = new String[max_array_size];
     
     private static ArrayMessageStorage instance = new ArrayMessageStorage();
     
+    private ArrayMessageStorage() {}
+
+    public static ArrayMessageStorage get() {
+        return instance;
+    }
+    
     // === Static methods to add messages and details ===
     public static void addSentMessage(String message, String sender, String recipient) {
-        if (instance.sentCount < instance.max_array_size) {
-            instance.sentMessages[instance.sentCount] = message;
-            instance.messageSenders[instance.sentCount] = sender;
-            instance.messageRecipients[instance.sentCount] = recipient;
-            instance.sentCount++;
-            instance.messageCount++;
-        } else {
-            JOptionPane.showMessageDialog(null, "Sent messages storage is full!");
-        }
+        if (get().sentCount < get().max_array_size) {
+        int i = get().sentCount;
+        get().sentMessages[i] = message;
+        get().messageSenders[i] = sender;
+        get().messageRecipients[i] = recipient;
+
+        // Increment sentCount and messageCount after adding the message
+        get().sentCount++;
+        get().messageCount++; // Assuming you need this for global tracking
+    } else {
+        JOptionPane.showMessageDialog(null, "Sent messages storage is full!");
+    }
     }
 
     public static void addDisregardedMessage(String message) {
-        if (instance.disregardedCount < instance.max_array_size) {
-            instance.disregardedMessages[instance.disregardedCount++] = message;
-        } else {
-            JOptionPane.showMessageDialog(null, "Disregarded messages storage is full!");
-        }
+    if (get().disregardedCount < get().max_array_size) {
+        int i = get().disregardedCount;
+        get().disregardedMessages[i] = message;
+        
+        // Increment the count after adding the message
+        get().disregardedCount++;
+    } else {
+        JOptionPane.showMessageDialog(null, "Disregarded messages storage is full!");
     }
+}
 
-    public static void addStoredMessage(String message) {
-        if (instance.storedCount < instance.max_array_size) {
-            instance.storedMessages[instance.storedCount++] = message;
-        } else {
-            JOptionPane.showMessageDialog(null, "Stored messages storage is full!");
-        }
+public static void addStoredMessage(String message) {
+    if (get().storedCount < get().max_array_size) {
+        int i = get().storedCount;
+        get().storedMessages[i] = message;
+        
+        // Increment the count after adding the message
+        get().storedCount++;
+    } else {
+        JOptionPane.showMessageDialog(null, "Stored messages storage is full!");
     }
+}
 
     public static void addMessageHash(String hash) {
         if (instance.messageCount < instance.max_array_size) {
@@ -78,23 +113,23 @@ String[] messageRecipients = new String[max_array_size];
     public static String displayAllArrays() {
         StringBuilder sb = new StringBuilder();
         sb.append("Sent Messages:\n");
-        for (int i = 0; i < instance.sentCount; i++) {
-            sb.append("From: ").append(instance.messageSenders[i])
-              .append(" -> To: ").append(instance.messageRecipients[i])
-              .append("\nMessage: ").append(instance.sentMessages[i])
-              .append("\nHash: ").append(instance.messagesHash[i])
-              .append("\nID: ").append(instance.messagesID[i])
+        for (int i = 0; i < get().sentCount; i++) {
+            sb.append("From: ").append(get().messageSenders[i])
+              .append(" -> To: ").append(get().messageRecipients[i])
+              .append("\nMessage: ").append(get().sentMessages[i])
+              .append("\nHash: ").append(get().messagesHash[i])
+              .append("\nID: ").append(get().messagesID[i])
               .append("\n\n");
         }
 
         sb.append("Disregarded Messages:\n");
-        for (int i = 0; i < instance.disregardedCount; i++) {
-            sb.append(instance.disregardedMessages[i]).append("\n");
+        for (int i = 0; i < get().disregardedCount; i++) {
+            sb.append(get().disregardedMessages[i]).append("\n");
         }
 
         sb.append("Stored Messages:\n");
-        for (int i = 0; i < instance.storedCount; i++) {
-            sb.append(instance.storedMessages[i]).append("\n");
+        for (int i = 0; i < get().storedCount; i++) {
+            sb.append(get().storedMessages[i]).append("\n");
         }
 
         return sb.toString();
@@ -103,10 +138,10 @@ String[] messageRecipients = new String[max_array_size];
     // === a. Show sender and recipient of all sent messages ===
     public static void showSendersAndRecipients() {
         StringBuilder sb = new StringBuilder("Sent Messages with Sender/Recipient:\n");
-        for (int i = 0; i < instance.sentCount; i++) {
-            sb.append("From: ").append(instance.messageSenders[i])
-              .append(" -> To: ").append(instance.messageRecipients[i])
-              .append("\nMessage: ").append(instance.sentMessages[i])
+        for (int i = 0; i < get().sentCount; i++) {
+            sb.append("From: ").append(get().messageSenders[i])
+              .append(" -> To: ").append(get().messageRecipients[i])
+              .append("\nMessage: ").append(get().sentMessages[i])
               .append("\n\n");
         }
         JOptionPane.showMessageDialog(null, sb.toString());
@@ -116,17 +151,19 @@ String[] messageRecipients = new String[max_array_size];
     public static void showLongestSentMessage() {
         int longestIndex = -1;
         int maxLength = 0;
-        for (int i = 0; i < instance.sentCount; i++) {
-            if (instance.sentMessages[i].length() > maxLength) {
-                maxLength = instance.sentMessages[i].length();
+
+        for (int i = 0; i < get().sentCount; i++) {
+            if (get().sentMessages[i] != null && get().sentMessages[i].length() > maxLength) {
+                maxLength = get().sentMessages[i].length();
                 longestIndex = i;
             }
         }
+
         if (longestIndex != -1) {
             JOptionPane.showMessageDialog(null, "Longest Sent Message:\nFrom: " 
-                + instance.messageSenders[longestIndex]
-                + " -> To: " + instance.messageRecipients[longestIndex]
-                + "\nMessage: " + instance.sentMessages[longestIndex]);
+                + get().messageSenders[longestIndex]
+                + " -> To: " + get().messageRecipients[longestIndex]
+                + "\nMessage: " + get().sentMessages[longestIndex]);
         } else {
             JOptionPane.showMessageDialog(null, "No sent messages found.");
         }
@@ -135,12 +172,13 @@ String[] messageRecipients = new String[max_array_size];
     // === c. Search message by ID and show recipient/message ===
     public static void searchByMessageIDShowRecipient() {
         String id = JOptionPane.showInputDialog("Enter Message ID to search:");
-        if (id == null) return;
-        for (int i = 0; i < instance.messageCount; i++) {
-            if (id.equals(instance.messagesID[i])) {
+        if (id == null || id.trim().isEmpty()) return;  // If user cancels or enters empty ID
+
+        for (int i = 0; i < get().messageCount; i++) {
+            if (id.equals(get().messagesID[i])) {
                 JOptionPane.showMessageDialog(null, "Message ID: " + id
-                    + "\nRecipient: " + instance.messageRecipients[i]
-                    + "\nMessage: " + instance.sentMessages[i]);
+                    + "\nRecipient: " + get().messageRecipients[i]
+                    + "\nMessage: " + get().sentMessages[i]);
                 return;
             }
         }
@@ -151,10 +189,11 @@ String[] messageRecipients = new String[max_array_size];
     public static void searchMessagesByRecipient(String recipient) {
         StringBuilder sb = new StringBuilder("Messages sent to " + recipient + ":\n");
         boolean found = false;
-        for (int i = 0; i < instance.sentCount; i++) {
-            if (recipient.equals(instance.messageRecipients[i])) {
-                sb.append("From: ").append(instance.messageSenders[i])
-                  .append("\nMessage: ").append(instance.sentMessages[i])
+
+        for (int i = 0; i < get().sentCount; i++) {
+            if (recipient.equals(get().messageRecipients[i])) {
+                sb.append("From: ").append(get().messageSenders[i])
+                  .append("\nMessage: ").append(get().sentMessages[i])
                   .append("\n\n");
                 found = true;
             }
@@ -165,45 +204,92 @@ String[] messageRecipients = new String[max_array_size];
 
     // === e. Delete a message using message hash ===
     public static void deleteByMessageHash(String hash) {
-        for (int i = 0; i < instance.messageCount; i++) {
-            if (hash.equals(instance.messagesHash[i])) {
-                int confirm = JOptionPane.showConfirmDialog(null,
-                    "Delete message: " + instance.sentMessages[i] + "?",
-                    "Confirm", JOptionPane.YES_NO_OPTION);
-                if (confirm == JOptionPane.YES_OPTION) {
-                    for (int j = i; j < instance.messageCount - 1; j++) {
-                        instance.messagesID[j] = instance.messagesID[j+1];
-                        instance.messagesHash[j] = instance.messagesHash[j+1];
-                        instance.sentMessages[j] = instance.sentMessages[j+1];
-                        instance.messageSenders[j] = instance.messageSenders[j+1];
-                        instance.messageRecipients[j] = instance.messageRecipients[j+1];
-                    }
-                    instance.messagesID[instance.messageCount-1] = null;
-                    instance.messagesHash[instance.messageCount-1] = null;
-                    instance.sentMessages[instance.messageCount-1] = null;
-                    instance.messageSenders[instance.messageCount-1] = null;
-                    instance.messageRecipients[instance.messageCount-1] = null;
-                    instance.messageCount--;
-                    instance.sentCount--;
-                    JOptionPane.showMessageDialog(null, "Message deleted.");
-                }
-                return;
+        // Search through all messages
+    for (int i = 0; i < get().messageCount; i++) {
+
+        // If the hash matches
+        if (hash.equals(get().messagesHash[i])) {
+
+            int confirm = JOptionPane.showConfirmDialog(
+                null,
+                "Delete message: " + get().sentMessages[i] + "?",
+                "Confirm",
+                JOptionPane.YES_NO_OPTION
+            );
+
+            if (confirm != JOptionPane.YES_OPTION) {
+                return; // user canceled
             }
+
+            // SHIFT LEFT all message-related arrays
+            for (int j = i; j < get().messageCount - 1; j++) {
+                get().sentMessages[j] = get().sentMessages[j + 1];
+                get().messageSenders[j] = get().messageSenders[j + 1];
+                get().messageRecipients[j] = get().messageRecipients[j + 1];
+                get().messagesHash[j] = get().messagesHash[j + 1];
+                get().messagesID[j] = get().messagesID[j + 1];
+            }
+
+            // Nullify the very last slot
+            int last = get().messageCount - 1;
+            get().sentMessages[last] = null;
+            get().messageSenders[last] = null;
+            get().messageRecipients[last] = null;
+            get().messagesHash[last] = null;
+            get().messagesID[last] = null;
+
+            // Reduce total messages
+            get().messageCount--;
+
+            // Only reduce sentCount if the deleted message was actually sent
+            if (i < get().sentCount) {
+                get().sentCount--;
+            }
+
+            JOptionPane.showMessageDialog(null, "Message deleted successfully.");
+            return;
         }
-        JOptionPane.showMessageDialog(null, "Message hash not found.");
     }
+
+    // If no match found
+    JOptionPane.showMessageDialog(null, "Message hash not found.");
+}
 
     // === f. Display full report of all sent messages ===
     public static void displayFullReport() {
         StringBuilder sb = new StringBuilder("Full Sent Messages Report:\n");
-        for (int i = 0; i < instance.sentCount; i++) {
-            sb.append("ID: ").append(instance.messagesID[i])
-              .append("\nHash: ").append(instance.messagesHash[i])
-              .append("\nFrom: ").append(instance.messageSenders[i])
-              .append("\nTo: ").append(instance.messageRecipients[i])
-              .append("\nMessage: ").append(instance.sentMessages[i])
+        for (int i = 0; i < get().sentCount; i++) {
+            sb.append("ID: ").append(get().messagesID[i])
+              .append("\nHash: ").append(get().messagesHash[i])
+              .append("\nFrom: ").append(get().messageSenders[i])
+              .append("\nTo: ").append(get().messageRecipients[i])
+              .append("\nMessage: ").append(get().sentMessages[i])
               .append("\n\n");
         }
         JOptionPane.showMessageDialog(null, sb.toString());
+    }
+
+    // --- Load Messages from JSON ---
+    public static void loadFromJSON(String filepath) throws IOException {
+        FileReader reader = new FileReader(filepath);
+        JSONTokener tok = new JSONTokener(reader);
+        JSONObject obj = new JSONObject(tok);
+        JSONArray arr = obj.getJSONArray("storedMessages");
+
+        for (int i = 0; i < arr.length(); i++) {
+            addStoredMessage(arr.getString(i));
+        }
+    }
+
+    // --- Search Messages by Recipient ---
+    public static String[] searchByRecipient(String rec) {
+        ArrayList<String> result = new ArrayList<>();
+
+        for (int i = 0; i < get().sentCount; i++) {
+            if (rec.equals(get().messageRecipients[i])) {
+                result.add(get().sentMessages[i]);
+            }
+        }
+        return result.toArray(new String[0]);
     }
 }
